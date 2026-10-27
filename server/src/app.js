@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
 const authRoutes = require("./routes/auth");
+const projectRoutes = require("./routes/projects");
 
 const app = express();
 
@@ -23,5 +24,6 @@ app.get("/health/db", async (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/workspaces/:workspaceId/projects", projectRoutes);
 
 module.exports = app;
