@@ -1,2 +1,3 @@
-# taskloom
-Multi-tenant team project tracker with roles and stripe billing
+git add README.md
+git commit -m "docs: add project README"
+git push
