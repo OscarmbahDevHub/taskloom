@@ -67,3 +67,19 @@ CREATE INDEX IF NOT EXISTS idx_memberships_user   ON memberships(user_id);
 CREATE INDEX IF NOT EXISTS idx_projects_workspace ON projects(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_workspace    ON tasks(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_project      ON tasks(project_id);
+
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+
+UPDATE tasks SET completed_at = created_at WHERE status = 'done' AND completed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS activity (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id      UUID REFERENCES users(id) ON DELETE SET NULL,
+  action       TEXT NOT NULL,
+  entity_name  TEXT,
+  meta         JSONB NOT NULL DEFAULT '{}',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_workspace ON activity(workspace_id, created_at DESC);

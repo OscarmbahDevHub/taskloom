@@ -4,6 +4,7 @@ const pool = require("../db");
 const PLANS = require("../config/plans");
 const requireAuth = require("../middleware/requireAuth");
 const { requireWorkspace, requireRole } = require("../middleware/requireWorkspace");
+const { logActivity } = require("../activity");
 
 const ROLES = ["admin", "member", "viewer"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -150,6 +151,12 @@ acceptRouter.post("/accept", requireAuth, async (req, res) => {
     );
 
     await client.query("COMMIT");
+
+    await logActivity({
+      workspaceId: invite.workspace_id,
+      userId: req.user.id,
+      action: "member_joined",
+    });
 
     res.json({
       joined: true,

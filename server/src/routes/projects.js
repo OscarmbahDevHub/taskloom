@@ -3,6 +3,7 @@ const pool = require("../db");
 const PLANS = require("../config/plans");
 const requireAuth = require("../middleware/requireAuth");
 const { requireWorkspace, requireRole } = require("../middleware/requireWorkspace");
+const { logActivity } = require("../activity");
 
 const router = express.Router({ mergeParams: true });
 
@@ -51,7 +52,16 @@ router.post("/", requireRole("admin", "member"), async (req, res) => {
       [req.workspace.id, name.trim(), description || null, req.user.id]
     );
 
-    res.status(201).json({ project: result.rows[0] });
+    const project = result.rows[0];
+
+    await logActivity({
+      workspaceId: req.workspace.id,
+      userId: req.user.id,
+      action: "project_created",
+      entityName: project.name,
+    });
+
+    res.status(201).json({ project });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not create project" });
@@ -61,13 +71,20 @@ router.post("/", requireRole("admin", "member"), async (req, res) => {
 router.delete("/:projectId", requireRole("admin"), async (req, res) => {
   try {
     const result = await pool.query(
-      "DELETE FROM projects WHERE id = $1 AND workspace_id = $2 RETURNING id",
+      "DELETE FROM projects WHERE id = $1 AND workspace_id = $2 RETURNING id, name",
       [req.params.projectId, req.workspace.id]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Project not found" });
     }
+
+    await logActivity({
+      workspaceId: req.workspace.id,
+      userId: req.user.id,
+      action: "project_deleted",
+      entityName: result.rows[0].name,
+    });
 
     res.json({ deleted: true });
   } catch (err) {
