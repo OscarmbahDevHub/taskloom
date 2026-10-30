@@ -45,8 +45,8 @@ router.post("/checkout", requireRole("admin"), async (req, res) => {
         : { customer_email: req.user.email }),
       client_reference_id: req.workspace.id,
       subscription_data: { metadata: { workspaceId: req.workspace.id } },
-      success_url: `${clientUrl}/billing/success`,
-      cancel_url: `${clientUrl}/billing/cancel`,
+      success_url: `${clientUrl}/workspaces/${req.workspace.id}?billing=success`,
+      cancel_url: `${clientUrl}/workspaces/${req.workspace.id}?billing=cancel`,
     });
 
     res.json({ url: session.url });

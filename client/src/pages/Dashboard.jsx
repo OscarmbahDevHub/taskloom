@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
 export default function Dashboard() {
@@ -19,12 +20,12 @@ export default function Dashboard() {
         <h1>Your workspaces</h1>
         <div className="grid">
           {session.workspaces.map((w) => (
-            <div className="card" key={w.id}>
+            <Link className="card link-card" key={w.id} to={`/workspaces/${w.id}`}>
               <h2>{w.name}</h2>
               <p className="muted">
                 Plan: {w.plan} · Role: {w.role}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </main>
