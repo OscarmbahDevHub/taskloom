@@ -149,7 +149,9 @@ export default function Workspace() {
         <div className="title-row">
           <div>
             <h1>{workspace.name}</h1>
-            <p className="muted">Your role: {role}</p>
+            <p className="muted">
+              Your role: {role} · <Link to={`/workspaces/${workspaceId}/team`}>Team</Link>
+            </p>
           </div>
           <span className={`badge ${plan}`}>{plan === "pro" ? "Pro" : "Free"}</span>
         </div>

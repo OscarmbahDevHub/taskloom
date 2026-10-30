@@ -45,12 +45,17 @@ export function AuthProvider({ children }) {
     });
   }
 
+  async function refresh() {
+    const data = await api("/api/auth/me", { token: session.token });
+    save({ ...session, user: data.user, workspaces: data.workspaces });
+  }
+
   function logout() {
     save(null);
   }
 
   return (
-    <AuthContext.Provider value={{ session, login, register, logout }}>
+    <AuthContext.Provider value={{ session, login, register, refresh, logout }}>
       {children}
     </AuthContext.Provider>
   );
