@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Workspace from "./pages/Workspace";
+import ProjectBoard from "./pages/ProjectBoard";
 
 function Protected({ children }) {
   const { session } = useAuth();
@@ -31,6 +32,14 @@ export default function App() {
         element={
           <Protected>
             <Workspace />
+          </Protected>
+        }
+      />
+      <Route
+        path="/workspaces/:workspaceId/projects/:projectId"
+        element={
+          <Protected>
+            <ProjectBoard />
           </Protected>
         }
       />

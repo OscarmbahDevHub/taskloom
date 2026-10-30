@@ -198,7 +198,9 @@ export default function Workspace() {
           <div className="grid">
             {projects.map((p) => (
               <div className="card" key={p.id}>
-                <h2>{p.name}</h2>
+                 <h2>
+                  <Link to={`/workspaces/${workspaceId}/projects/${p.id}`}>{p.name}</Link>
+                </h2>
                 <p className="muted">{p.description || "No description"}</p>
                 {isAdmin && (
                   <button className="secondary" onClick={() => deleteProject(p.id)}>
