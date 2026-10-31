@@ -2,20 +2,50 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { api } from "../api";
+import { formatMoney } from "../format";
 
 const FREE_LIMIT = 3;
+
+function ValueInput({ cents, onSave }) {
+  const [text, setText] = useState(String(cents / 100));
+
+  function commit() {
+    const number = Number(text);
+    if (text === "" || !Number.isFinite(number) || number < 0) {
+      setText(String(cents / 100));
+      return;
+    }
+    if (Math.round(number * 100) !== cents) onSave(number);
+  }
+
+  return (
+    <input
+      className="value-input"
+      type="number"
+      min="0"
+      step="0.01"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      aria-label="Project value in USD"
+    />
+  );
+}
 
 export default function Workspace() {
   const { workspaceId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
   const token = session.token;
 
   const workspace = session.workspaces.find((w) => w.id === workspaceId);
 
   const [plan, setPlan] = useState(workspace ? workspace.plan : "free");
   const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
   const [name, setName] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -36,6 +66,11 @@ export default function Workspace() {
     setProjects(data.projects);
   }, [base, token]);
 
+  const loadClients = useCallback(async () => {
+    const data = await api(`${base}/clients`, { token });
+    setClients(data.clients);
+  }, [base, token]);
+
   const loadBilling = useCallback(async () => {
     const data = await api(`${base}/billing`, { token });
     setPlan(data.plan);
@@ -44,10 +79,10 @@ export default function Workspace() {
 
   useEffect(() => {
     if (!workspace) return;
-    Promise.all([loadProjects(), loadBilling()])
+    Promise.all([loadProjects(), loadClients(), loadBilling()])
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [workspace, loadProjects, loadBilling]);
+  }, [workspace, loadProjects, loadClients, loadBilling]);
 
   useEffect(() => {
     if (searchParams.get("billing") !== "success") return;
@@ -83,14 +118,34 @@ export default function Workspace() {
       const data = await api(`${base}/projects`, {
         method: "POST",
         token,
-        body: { name },
+        body: {
+          name,
+          clientId: clientId || undefined,
+          value: value === "" ? undefined : Number(value),
+        },
       });
       setProjects([data.project, ...projects]);
       setName("");
+      setClientId("");
+      setValue("");
     } catch (err) {
       setError(err.message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function updateProject(id, body) {
+    setError("");
+    try {
+      const data = await api(`${base}/projects/${id}`, {
+        method: "PATCH",
+        token,
+        body,
+      });
+      setProjects(projects.map((p) => (p.id === id ? data.project : p)));
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -122,98 +177,127 @@ export default function Workspace() {
 
   if (!workspace) {
     return (
-      <div className="page">
-        <main className="content">
-          <h1>Workspace not found</h1>
-          <Link to="/">Back to dashboard</Link>
-        </main>
+      <div>
+        <h1>Workspace not found</h1>
+        <Link to="/">Back to dashboard</Link>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <header className="topbar">
-        <Link to="/">
-          <strong>Taskloom</strong>
-        </Link>
-        <div className="topbar-right">
-          <span className="muted">{session.user.fullName}</span>
-          <button className="secondary" onClick={logout}>
-            Log out
+    <div>
+      <div className="title-row">
+        <div>
+          <h1>Projects</h1>
+          <p className="muted">Your role: {role}</p>
+        </div>
+        <span className={`badge ${plan}`}>{plan === "pro" ? "Pro" : "Free"}</span>
+      </div>
+
+      {notice && <div className="notice">{notice}</div>}
+      {error && <div className="error">{error}</div>}
+
+      {plan === "free" && isAdmin && (
+        <div className="card upgrade">
+          <div>
+            <strong>Upgrade to Pro</strong>
+            <p className="muted">Unlimited projects and members for $9/month.</p>
+          </div>
+          <button onClick={upgrade} disabled={busy}>
+            Upgrade
           </button>
         </div>
-      </header>
+      )}
 
-      <main className="content">
-        <div className="title-row">
-          <div>
-            <h1>{workspace.name}</h1>
-            <p className="muted">
-              Your role: {role} · <Link to={`/workspaces/${workspaceId}/team`}>Team</Link>
-            </p>
-          </div>
-          <span className={`badge ${plan}`}>{plan === "pro" ? "Pro" : "Free"}</span>
-        </div>
+      {plan === "free" && (
+        <p className="muted">
+          {projects.length} of {FREE_LIMIT} projects used on the Free plan.
+        </p>
+      )}
 
-        {notice && <div className="notice">{notice}</div>}
-        {error && <div className="error">{error}</div>}
+      {canEdit && (
+        <form className="inline-form" onSubmit={createProject}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="New project name"
+            required
+          />
+          <select value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            <option value="">No client</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <input
+            className="value-input"
+            type="number"
+            min="0"
+            step="0.01"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Value (USD)"
+          />
+          <button type="submit" disabled={busy}>
+            Add project
+          </button>
+        </form>
+      )}
 
-        {plan === "free" && isAdmin && (
-          <div className="card upgrade">
-            <div>
-              <strong>Upgrade to Pro</strong>
-              <p className="muted">Unlimited projects and members for $9/month.</p>
-            </div>
-            <button onClick={upgrade} disabled={busy}>
-              Upgrade
-            </button>
-          </div>
-        )}
+      {loading ? (
+        <p className="muted">Loading...</p>
+      ) : projects.length === 0 ? (
+        <p className="muted">No projects yet.</p>
+      ) : (
+        <div className="grid">
+          {projects.map((p) => (
+            <div className="card" key={p.id}>
+              <h2>
+                <Link to={`/workspaces/${workspaceId}/projects/${p.id}`}>{p.name}</Link>
+              </h2>
+              <p className="muted">{p.description || "No description"}</p>
 
-        <h2>Projects</h2>
-        {plan === "free" && (
-          <p className="muted">
-            {projects.length} of {FREE_LIMIT} projects used on the Free plan.
-          </p>
-        )}
-
-        {canEdit && (
-          <form className="inline-form" onSubmit={createProject}>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="New project name"
-              required
-            />
-            <button type="submit" disabled={busy}>
-              Add project
-            </button>
-          </form>
-        )}
-
-        {loading ? (
-          <p className="muted">Loading...</p>
-        ) : projects.length === 0 ? (
-          <p className="muted">No projects yet.</p>
-        ) : (
-          <div className="grid">
-            {projects.map((p) => (
-              <div className="card" key={p.id}>
-                 <h2>
-                  <Link to={`/workspaces/${workspaceId}/projects/${p.id}`}>{p.name}</Link>
-                </h2>
-                <p className="muted">{p.description || "No description"}</p>
-                {isAdmin && (
-                  <button className="secondary" onClick={() => deleteProject(p.id)}>
-                    Delete
-                  </button>
+              <div className="project-meta">
+                {canEdit ? (
+                  <>
+                    <select
+                      value={p.client_id || ""}
+                      onChange={(e) =>
+                        updateProject(p.id, { clientId: e.target.value || null })
+                      }
+                    >
+                      <option value="">No client</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ValueInput
+                      key={`${p.id}-${p.value_cents}`}
+                      cents={p.value_cents}
+                      onSave={(dollars) => updateProject(p.id, { value: dollars })}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span className="muted">{p.client_name || "No client"}</span>
+                    <strong>{formatMoney(p.value_cents)}</strong>
+                  </>
                 )}
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+
+              {isAdmin && (
+                <button className="secondary" onClick={() => deleteProject(p.id)}>
+                  Delete
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

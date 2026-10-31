@@ -788,3 +788,46 @@ button.range.active {
     padding: 2px 4px;
   }
 }
+
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.project-meta select {
+  flex: 1;
+  min-width: 120px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.value-input {
+  width: 120px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.inline-form input.value-input {
+  flex: 0 0 130px;
+  padding: 10px 12px;
+  font-size: 15px;
+}
+
+.inline-form {
+  flex-wrap: wrap;
+}
+
+.row-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

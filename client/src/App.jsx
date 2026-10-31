@@ -10,6 +10,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import Overview from "./pages/Overview";
 import Analytics from "./pages/Analytics";
 import Calendar from "./pages/Calendar";
+import Clients from "./pages/Clients";
 import Layout from "./components/Layout";
 
 const RETURN_KEY = "taskloom_return_to";
@@ -70,6 +71,7 @@ export default function App() {
         <Route index element={<Overview />} />
         <Route path="projects" element={<Workspace />} />
         <Route path="projects/:projectId" element={<ProjectBoard />} />
+        <Route path="clients" element={<Clients />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="team" element={<Team />} />
