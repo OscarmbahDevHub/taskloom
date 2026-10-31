@@ -9,6 +9,7 @@ const invitations = require("./routes/invitations");
 const billingRoutes = require("./routes/billing");
 const overviewRoutes = require("./routes/overview");
 const activityRoutes = require("./routes/activity");
+const analyticsRoutes = require("./routes/analytics");
 const { handleWebhook } = require("./routes/webhooks");
 
 const app = express();
@@ -49,6 +50,7 @@ app.use("/api/workspaces/:workspaceId/members", memberRoutes);
 app.use("/api/workspaces/:workspaceId/billing", billingRoutes);
 app.use("/api/workspaces/:workspaceId/overview", overviewRoutes);
 app.use("/api/workspaces/:workspaceId/activity", activityRoutes);
+app.use("/api/workspaces/:workspaceId/analytics", analyticsRoutes);
 app.use("/api/workspaces/:workspaceId/projects/:projectId/tasks", taskRoutes);
 app.use("/api/workspaces/:workspaceId/projects", projectRoutes);
 

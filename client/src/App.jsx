@@ -7,6 +7,9 @@ import Workspace from "./pages/Workspace";
 import ProjectBoard from "./pages/ProjectBoard";
 import Team from "./pages/Team";
 import AcceptInvite from "./pages/AcceptInvite";
+import Overview from "./pages/Overview";
+import Analytics from "./pages/Analytics";
+import Layout from "./components/Layout";
 
 const RETURN_KEY = "taskloom_return_to";
 
@@ -59,26 +62,16 @@ export default function App() {
         path="/workspaces/:workspaceId"
         element={
           <Protected>
-            <Workspace />
+            <Layout />
           </Protected>
         }
-      />
-      <Route
-        path="/workspaces/:workspaceId/team"
-        element={
-          <Protected>
-            <Team />
-          </Protected>
-        }
-      />
-      <Route
-        path="/workspaces/:workspaceId/projects/:projectId"
-        element={
-          <Protected>
-            <ProjectBoard />
-          </Protected>
-        }
-      />
+      >
+        <Route index element={<Overview />} />
+        <Route path="projects" element={<Workspace />} />
+        <Route path="projects/:projectId" element={<ProjectBoard />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="team" element={<Team />} />
+      </Route>
       <Route
         path="/login"
         element={
