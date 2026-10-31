@@ -3,6 +3,7 @@ const pool = require("../db");
 const requireAuth = require("../middleware/requireAuth");
 const { requireWorkspace, requireRole } = require("../middleware/requireWorkspace");
 const { logActivity } = require("../activity");
+const { runAutomations } = require("../automations");
 
 const router = express.Router({ mergeParams: true });
 
@@ -193,7 +194,7 @@ router.patch("/:taskId", requireRole("admin", "member"), async (req, res) => {
       values
     );
 
-    const task = result.rows[0];
+    let task = result.rows[0];
 
     if (statusChanged) {
       await logActivity({
@@ -203,6 +204,21 @@ router.patch("/:taskId", requireRole("admin", "member"), async (req, res) => {
         entityName: task.title,
         meta: { project: req.project.name, status: fields.status },
       });
+
+      await runAutomations({
+        workspaceId: req.workspace.id,
+        task,
+        status: fields.status,
+        actorId: req.user.id,
+        projectName: req.project.name,
+        projectId: req.params.projectId,
+      });
+
+      const fresh = await pool.query(
+        `SELECT ${TASK_COLUMNS} FROM tasks WHERE id = $1`,
+        [taskId]
+      );
+      task = fresh.rows[0];
     }
 
     res.json({ task });

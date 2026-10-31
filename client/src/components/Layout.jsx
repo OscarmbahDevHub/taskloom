@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { api } from "../api";
 
@@ -16,7 +23,10 @@ export default function Layout() {
   const { workspaceId } = useParams();
   const { session, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [plan, setPlan] = useState(null);
+  const [unread, setUnread] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const workspace = session.workspaces.find((w) => w.id === workspaceId);
   const token = session.token;
@@ -27,6 +37,19 @@ export default function Layout() {
       .then((data) => setPlan(data.plan))
       .catch(() => setPlan(null));
   }, [workspace, workspaceId, token]);
+
+  useEffect(() => {
+    if (!workspace) return;
+    api(`/api/workspaces/${workspaceId}/notifications`, { token })
+      .then((data) => setUnread(data.unreadCount))
+      .catch(() => setUnread(0));
+  }, [workspace, workspaceId, token, location.pathname, refreshKey]);
+
+  useEffect(() => {
+    const handler = () => setRefreshKey((n) => n + 1);
+    window.addEventListener("taskloom:notifications", handler);
+    return () => window.removeEventListener("taskloom:notifications", handler);
+  }, []);
 
   if (!workspace) {
     return (
@@ -69,6 +92,7 @@ export default function Layout() {
           <NavLink to={`${base}/clients`}>Clients</NavLink>
           <NavLink to={`${base}/calendar`}>Calendar</NavLink>
           <NavLink to={`${base}/analytics`}>Analytics</NavLink>
+          <NavLink to={`${base}/automations`}>Automations</NavLink>
           <NavLink to={`${base}/team`}>Team</NavLink>
         </nav>
 
@@ -101,11 +125,17 @@ export default function Layout() {
           <div>
             <strong>{workspace.name}</strong>
           </div>
-          {isAdmin && (
-            <Link to={`${base}/team`} className="button-link">
-              + Invite member
+          <div className="shell-top-right">
+            <Link to={`${base}/automations`} className="bell">
+              Notifications
+              {unread > 0 && <span className="count">{unread}</span>}
             </Link>
-          )}
+            {isAdmin && (
+              <Link to={`${base}/team`} className="button-link">
+                + Invite member
+              </Link>
+            )}
+          </div>
         </header>
 
         <div className="shell-body">

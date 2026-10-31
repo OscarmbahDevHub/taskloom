@@ -11,6 +11,7 @@ import Overview from "./pages/Overview";
 import Analytics from "./pages/Analytics";
 import Calendar from "./pages/Calendar";
 import Clients from "./pages/Clients";
+import Automations from "./pages/Automations";
 import Layout from "./components/Layout";
 
 const RETURN_KEY = "taskloom_return_to";
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="clients" element={<Clients />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="automations" element={<Automations />} />
         <Route path="team" element={<Team />} />
       </Route>
       <Route

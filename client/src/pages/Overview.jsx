@@ -57,6 +57,8 @@ function describe(item) {
       return `completed ${name}`;
     case "member_joined":
       return "joined the workspace";
+    case "automation_ran":
+      return `ran automation ${name}${meta.task ? ` on "${meta.task}"` : ""}`;
     default:
       return item.action;
   }

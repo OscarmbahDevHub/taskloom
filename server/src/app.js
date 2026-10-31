@@ -13,6 +13,7 @@ const analyticsRoutes = require("./routes/analytics");
 const calendarRoutes = require("./routes/calendar");
 const clientRoutes = require("./routes/clients");
 const revenueRoutes = require("./routes/revenue");
+const { automationsRouter, notificationsRouter } = require("./routes/automations");
 const { handleWebhook } = require("./routes/webhooks");
 
 const app = express();
@@ -57,6 +58,8 @@ app.use("/api/workspaces/:workspaceId/analytics", analyticsRoutes);
 app.use("/api/workspaces/:workspaceId/calendar", calendarRoutes);
 app.use("/api/workspaces/:workspaceId/clients", clientRoutes);
 app.use("/api/workspaces/:workspaceId/revenue", revenueRoutes);
+app.use("/api/workspaces/:workspaceId/automations", automationsRouter);
+app.use("/api/workspaces/:workspaceId/notifications", notificationsRouter);
 app.use("/api/workspaces/:workspaceId/projects/:projectId/tasks", taskRoutes);
 app.use("/api/workspaces/:workspaceId/projects", projectRoutes);
 

@@ -831,3 +831,55 @@ button.range.active {
   gap: 12px;
 }
 
+.shell-top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bell:hover {
+  background: var(--bg);
+}
+
+.count {
+  background: #ef4444;
+  color: white;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 7px;
+}
+
+.note-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.note-item:last-child {
+  border-bottom: none;
+}
+
+.note-item.unread {
+  font-weight: 600;
+}
+
+.note-item .muted {
+  white-space: nowrap;
+  font-weight: 400;
+}

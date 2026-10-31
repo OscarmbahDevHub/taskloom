@@ -97,3 +97,32 @@ CREATE INDEX IF NOT EXISTS idx_clients_workspace ON clients(workspace_id);
 
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id) ON DELETE SET NULL;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS value_cents INTEGER NOT NULL DEFAULT 0 CHECK (value_cents >= 0);
+
+CREATE TABLE IF NOT EXISTS automations (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id   UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  name           TEXT NOT NULL,
+  trigger_status TEXT NOT NULL CHECK (trigger_status IN ('todo', 'in_progress', 'done')),
+  action         TEXT NOT NULL CHECK (action IN ('notify_admins', 'assign_to')),
+  action_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  active         BOOLEAN NOT NULL DEFAULT true,
+  run_count      INTEGER NOT NULL DEFAULT 0,
+  last_run_at    TIMESTAMPTZ,
+  created_by     UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_automations_workspace ON automations(workspace_id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message      TEXT NOT NULL,
+  link         TEXT,
+  read_at      TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, workspace_id, created_at DESC);
+
