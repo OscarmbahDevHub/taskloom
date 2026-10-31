@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
+const DEMO = { email: "demo-admin@taskloom.test", password: "DemoPass123!" };
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -10,18 +12,21 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function signIn(emailValue, passwordValue) {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      await login(emailValue, passwordValue);
       navigate("/");
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    signIn(email, password);
   }
 
   return (
@@ -55,6 +60,20 @@ export default function Login() {
         <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Log in"}
         </button>
+
+        <div className="divider">or</div>
+
+        <button
+          type="button"
+          className="secondary"
+          disabled={loading}
+          onClick={() => signIn(DEMO.email, DEMO.password)}
+        >
+          Try the demo
+        </button>
+        <p className="muted center small-note">
+          Explore a sample workspace full of example data. No sign-up needed.
+        </p>
 
         <p className="muted center">
           New to Taskloom? <Link to="/register">Create an account</Link>

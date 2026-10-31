@@ -35,9 +35,14 @@ function PublicOnly({ children }) {
 }
 
 function Home() {
+  const { session } = useAuth();
   const target = sessionStorage.getItem(RETURN_KEY);
+
   if (target) {
     return <Navigate to={target} replace />;
+  }
+  if (session.workspaces.length === 1) {
+    return <Navigate to={`/workspaces/${session.workspaces[0].id}`} replace />;
   }
   return <Dashboard />;
 }

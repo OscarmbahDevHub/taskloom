@@ -883,3 +883,25 @@ button.range.active {
   white-space: nowrap;
   font-weight: 400;
 }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.small-note {
+  font-size: 13px;
+  margin-top: -4px;
+}
+
