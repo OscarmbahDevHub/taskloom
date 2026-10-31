@@ -66,6 +66,7 @@ export default function Layout() {
             Overview
           </NavLink>
           <NavLink to={`${base}/projects`}>Projects</NavLink>
+          <NavLink to={`${base}/calendar`}>Calendar</NavLink>
           <NavLink to={`${base}/analytics`}>Analytics</NavLink>
           <NavLink to={`${base}/team`}>Team</NavLink>
         </nav>
